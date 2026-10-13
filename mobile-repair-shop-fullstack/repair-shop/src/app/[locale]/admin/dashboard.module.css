@@ -1,0 +1,145 @@
+.folderList {
+  display: grid;
+  gap: 10px;
+}
+
+.folder {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+}
+
+.folderIdentity {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.folderIdentity strong {
+  overflow-wrap: anywhere;
+}
+
+.folderIdentity span {
+  color: var(--muted);
+  font-size: 13px;
+  overflow-wrap: anywhere;
+}
+
+.folderEditor {
+  display: grid;
+  gap: 14px;
+  padding: 16px;
+  border-top: 1px solid var(--line);
+}
+
+.folderEditor h3 {
+  margin: 8px 0 0;
+  font-size: 17px;
+}
+
+.folderSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  list-style: none;
+}
+
+.folderSummary::-webkit-details-marker {
+  display: none;
+}
+
+.folderSummary::after {
+  content: "+";
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 20px;
+}
+
+.folder[open] > .folderSummary::after {
+  content: "-";
+}
+
+.folderSummary span:first-child {
+  overflow-wrap: anywhere;
+}
+
+.folderSummary span:last-child {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-align: right;
+}
+
+.variantForm,
+.variantEditor {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.variantList {
+  display: grid;
+  gap: 8px;
+}
+
+.variantFolder {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--card);
+  overflow: hidden;
+}
+
+.variantFolder summary {
+  padding: 12px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.variantEditor {
+  margin: 0 10px 10px;
+}
+
+@media (max-width: 600px) {
+  .folderHeader {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .folderEditor {
+    padding: 12px;
+  }
+
+  .folderSummary {
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .folderSummary span:last-child {
+    max-width: 44%;
+  }
+
+  .variantForm,
+  .variantEditor {
+    padding: 10px;
+  }
+}

@@ -1,0 +1,198 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RepairStatus {
+  REQUESTED
+  RECEIVED
+  DIAGNOSING
+  WAITING_APPROVAL
+  WAITING_PARTS
+  IN_PROGRESS
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+enum StaffRole {
+  OWNER
+  MANAGER
+  STAFF
+}
+
+enum ShopOrderStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  SHIPPED
+  COMPLETED
+  CANCELLED
+}
+
+model Booking {
+  id             String   @id @default(cuid())
+  reference      String   @unique
+  customerName   String
+  phone          String
+  email          String?
+  device         String
+  issue          String
+  service        String
+  preferredDate  DateTime?
+  notes          String?
+  locale         String   @default("en")
+  status         RepairStatus @default(REQUESTED)
+  quotedPrice    Decimal? @db.Decimal(10, 2)
+  currency       String   @default("THB")
+  adminNotes     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([phone, reference])
+  @@index([status, createdAt])
+}
+
+model StaffUser {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  displayName  String
+  passwordHash String
+  role         StaffRole      @default(STAFF)
+  active       Boolean        @default(true)
+  sessions     StaffSession[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([role, active])
+}
+
+model StaffSession {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  staffId   String
+  staff     StaffUser @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime  @default(now())
+
+  @@index([staffId, expiresAt])
+  @@index([expiresAt])
+}
+
+model ShopProduct {
+  id          String          @id @default(cuid())
+  slug        String          @unique
+  name        String
+  brand       String
+  model       String
+  storage     String
+  condition   String
+  description String          @db.Text
+  imageUrl    String?
+  price       Decimal         @db.Decimal(10, 2)
+  stock       Int             @default(0)
+  active      Boolean         @default(true)
+  orderItems  ShopOrderItem[]
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([active, brand])
+}
+
+model RepairService {
+  id             String   @id @default(cuid())
+  key            String   @unique
+  name           String
+  translationKey String?
+  icon           String   @default("+")
+  description    String   @db.Text
+  termsAndConditions String @default("") @db.Text
+  price          Decimal  @db.Decimal(10, 2)
+  turnaround     String   @default("48 hours")
+  active         Boolean  @default(true)
+  variantPrices  RepairVariantPrice[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([active, createdAt])
+}
+
+model RepairVariantPrice {
+  id        String        @id @default(cuid())
+  serviceId String
+  service   RepairService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  model     String
+  quality   String        @default("Standard")
+  price     Decimal       @db.Decimal(10, 2)
+  currency  String        @default("THB")
+  active    Boolean       @default(true)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([serviceId, model, quality])
+  @@index([serviceId, active, model])
+}
+
+model RepairPrice {
+  id        String   @id @default(cuid())
+  model     String
+  problem   String
+  price     Decimal  @db.Decimal(10, 2)
+  currency  String   @default("THB")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([model, problem])
+  @@index([active, model])
+}
+
+model ShopOrder {
+  id              String          @id @default(cuid())
+  reference       String          @unique
+  customerName    String
+  email           String
+  phone           String
+  shippingAddress String          @db.Text
+  notes           String?         @db.Text
+  status          ShopOrderStatus @default(PENDING)
+  total           Decimal         @db.Decimal(10, 2)
+  items           ShopOrderItem[]
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([status, createdAt])
+}
+
+model ShopOrderItem {
+  id            String      @id @default(cuid())
+  orderId       String
+  order         ShopOrder   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId     String?
+  product       ShopProduct? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  productName   String
+  quantity      Int
+  unitPrice     Decimal     @db.Decimal(10, 2)
+
+  @@index([orderId])
+}
+
+model TranslationCache {
+  id            String   @id @default(cuid())
+  cacheKey      String   @unique
+  sourceLocale  String
+  targetLocale  String
+  sourceText    String   @db.Text
+  translatedText String  @db.Text
+  provider      String
+  approved      Boolean  @default(false)
+  contentVersion String  @default("v1")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([targetLocale, approved])
+}

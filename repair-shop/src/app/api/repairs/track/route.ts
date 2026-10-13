@@ -1,0 +1,5 @@
+import {NextRequest,NextResponse} from 'next/server';import {z} from 'zod';import {prisma} from '@/lib/prisma';
+export const runtime='nodejs';
+const querySchema=z.object({reference:z.string().trim().min(5).max(40),phone:z.string().trim().min(5).max(40)});
+function normalizePhone(s:string){return s.replace(/[\s().-]/g,'');}
+export async function GET(req:NextRequest){const parsed=querySchema.safeParse({reference:req.nextUrl.searchParams.get('reference'),phone:req.nextUrl.searchParams.get('phone')});if(!parsed.success)return NextResponse.json({error:'Reference and phone number are required.'},{status:400});try{const booking=await prisma.booking.findUnique({where:{reference:parsed.data.reference.toUpperCase()}});if(!booking||normalizePhone(booking.phone)!==normalizePhone(parsed.data.phone))return NextResponse.json({error:'We could not find a repair matching those details.'},{status:404});return NextResponse.json({reference:booking.reference,status:booking.status,device:booking.device,updatedAt:booking.updatedAt});}catch(e){console.error('Repair lookup failed',e);return NextResponse.json({error:'Tracking is temporarily unavailable.'},{status:500});}}

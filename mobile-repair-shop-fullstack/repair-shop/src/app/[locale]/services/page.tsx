@@ -1,0 +1,35 @@
+import {getTranslations} from 'next-intl/server';
+import {Link} from '@/i18n/navigation';
+import {getRepairServices} from '@/lib/services';
+import type {Metadata} from 'next';
+
+export const metadata: Metadata = {
+  title: 'Repair Services',
+  description: 'Explore mobile phone screen, battery, charging port, camera and software repair services.',
+};
+
+export default async function ServicesPage() {
+  const t = await getTranslations('Services');
+  const services = await getRepairServices();
+
+  return <section className="container">
+    <div className="page-intro">
+      <div className="eyebrow">REPAIR MENU</div>
+      <h1>{t('title')}</h1>
+      <p>{t('subtitle')}</p>
+    </div>
+    <div className="service-grid" style={{marginBottom: 70}}>
+      {services.map(item => (
+        <article className="service-card" key={item.id}>
+          <div className="service-icon">{item.icon}</div>
+          <h3>{item.name || t(item.translationKey || item.key)}</h3>
+          <p>{item.description}</p>
+          <div className="service-bottom">
+            <span className="price">{t('from')} ฿{item.price.toLocaleString('en-US')}</span>
+            <Link className="textlink" href={`/booking?service=${encodeURIComponent(item.key)}`}>{t('book')} ↗</Link>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>;
+}

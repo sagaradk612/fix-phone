@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum RepairStatus {
+  REQUESTED
+  RECEIVED
+  DIAGNOSING
+  WAITING_APPROVAL
+  WAITING_PARTS
+  IN_PROGRESS
+  READY_FOR_PICKUP
+  COMPLETED
+  CANCELLED
+}
+
+model Booking {
+  id             String   @id @default(cuid())
+  reference      String   @unique
+  customerName   String
+  phone          String
+  email          String?
+  device         String
+  issue          String
+  service        String
+  preferredDate  DateTime?
+  notes          String?
+  locale         String   @default("en")
+  status         RepairStatus @default(REQUESTED)
+  quotedPrice    Decimal? @db.Decimal(10, 2)
+  currency       String   @default("THB")
+  adminNotes     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([phone, reference])
+  @@index([status, createdAt])
+}
+
+model TranslationCache {
+  id            String   @id @default(cuid())
+  cacheKey      String   @unique
+  sourceLocale  String
+  targetLocale  String
+  sourceText    String   @db.Text
+  translatedText String  @db.Text
+  provider      String
+  approved      Boolean  @default(false)
+  contentVersion String  @default("v1")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([targetLocale, approved])
+}
